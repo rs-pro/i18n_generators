@@ -41,27 +41,19 @@ class I18nTranslationGenerator < Rails::Generators::NamedBase
 
   private
   def models
-    ar_descendants = ActiveRecord::Base.descendants
-    ar_descendants.delete(ActiveRecord::SchemaMigration) if defined?(ActiveRecord::SchemaMigration)
-    @models ||= ar_descendants.map do |m|
-      begin
-        m if m.table_exists? && m.respond_to?(:content_columns)
-      rescue => e
-        p e
-        next
-      end
-    end.compact
+    Object.constants.collect { |sym| Object.const_get(sym) }.
+      select { |constant| constant.class == Class && constant.include?(Mongoid::Document) }
   end
 
   def model_names_keys
-    models.map {|m| "activerecord.models.#{m.model_name.to_s.underscore}"}
+    models.map {|m| "models.#{m.model_name.to_s.underscore}"}
   end
 
   def content_column_names_keys
     models.map {|m|
       cols = m.content_columns.map {|c| c.name}
       cols.delete_if {|c| %w[created_at updated_at].include? c} unless include_timestamps?
-      cols.map {|c| "activerecord.attributes.#{m.model_name.to_s.underscore}.#{c}"}
+      cols.map {|c| "attributes.#{m.model_name.to_s.underscore}.#{c}"}
     }.flatten
   end
 
@@ -69,7 +61,7 @@ class I18nTranslationGenerator < Rails::Generators::NamedBase
     ret = {}
     models.each do |m|
       m.reflect_on_all_associations.select {|c| !c.collection?}.each do |c|
-        ret["activerecord.attributes.#{m.model_name.to_s.underscore}.#{c.name}"] = "activerecord.models.#{c.name}".to_sym
+        ret["attributes.#{m.model_name.to_s.underscore}.#{c.name}"] = "models.#{c.name}".to_sym
       end
     end
     ret
@@ -77,7 +69,7 @@ class I18nTranslationGenerator < Rails::Generators::NamedBase
 
   def collection_reflection_names_keys
     models.map {|m|
-      m.reflect_on_all_associations.select {|c| c.collection?}.map {|c| "activerecord.attributes.#{m.model_name.to_s.underscore}.#{c.name}"}
+      m.reflect_on_all_associations.select {|c| c.collection?}.map {|c| "attributes.#{m.model_name.to_s.underscore}.#{c.name}"}
     }.flatten
   end
 
