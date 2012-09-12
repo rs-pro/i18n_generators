@@ -40,6 +40,7 @@ class I18nTranslationGenerator < Rails::Generators::NamedBase
   end
 
   private
+
   def models
     Object.constants.collect { |sym| Object.const_get(sym) }.
       select { |constant| constant.class == Class && constant.include?(Mongoid::Document) }
@@ -51,8 +52,8 @@ class I18nTranslationGenerator < Rails::Generators::NamedBase
 
   def content_column_names_keys
     models.map {|m|
-      cols = m.content_columns.map {|c| c.name}
-      cols.delete_if {|c| %w[created_at updated_at].include? c} unless include_timestamps?
+      cols = m.fields.map {|c| c[1].name}
+      cols.delete_if {|c| %w[id _id type _type created_at updated_at deleted_at lft rgt depth parent_id].include? c} unless include_timestamps?
       cols.map {|c| "attributes.#{m.model_name.to_s.underscore}.#{c}"}
     }.flatten
   end
