@@ -1,3 +1,5 @@
+This fork supports mongoid in i18n_translation generator (but no longer supports AR!)
+
 = I18n generators
 
 This gem plugin generates a set of locale files for Rails i18n feature. Supports Rails 4.0, 3.2.x, 3.1.x, 3.0.x, 2.3.x and 2.2.x.
